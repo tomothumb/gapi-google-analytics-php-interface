@@ -360,6 +360,43 @@ class gapi {
   }
 
   /**
+   * Get current analytics results
+   * and output as xml format strings ( API v2.3 faked ).
+   *
+   * @return String
+   */
+  public function getResultsXML() {
+    $xmlstring = "";
+    $xmlentry = array();
+
+    if(is_array($this->results) && count($this->results) >= 1 ){
+      // generate tags each entry
+      foreach ($this->results as $entry) {
+        $xmlentrydetail = array();
+        foreach ( $entry->getDimensions() as $key => $value) {
+          $xmlentrydetail[] = "\t<dxp:dimension name='ga:".$key."' value='".htmlentities($value, ENT_QUOTES | ENT_XML1, "UTF-8")."'/>";
+        }
+        foreach ( $entry->getMetrics() as $key => $value) {
+          $type = (is_integer($value)) ? 'integer' : 'string';
+          $xmlentrydetail[] = "\t<dxp:metric name='ga:".$key."' value='".htmlentities($value, ENT_QUOTES | ENT_XML1, "UTF-8")."' type='".$type."'/>";
+        }
+        $xmlentry[] = '<entry>'."\n".implode("\n", $xmlentrydetail)."\n".'</entry>';
+      }
+
+      // Put xml header/footer
+      $xmlheader = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+      $xmlheader .= '<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dxp="http://schemas.google.com/analytics/2009" xmlns:openSearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:gd="http://schemas.google.com/g/2005" gd:kind="analytics#data">';
+      $xmlfooter = '</feed>';
+      // combine all entry and make strings of faked xml format.
+      $xmlstring = $xmlheader . "\n"
+                 . implode("\n", $xmlentry) . "\n"
+                 . $xmlfooter;
+      return $xmlstring;
+    }
+    return false;
+  }
+  
+  /**
    * Get current account data
    *
    * @return Array
